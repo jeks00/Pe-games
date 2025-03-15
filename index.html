@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maroon Fortune Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #800000;
+            font-family: 'Roboto', sans-serif;
+            text-align: center;
+            color: #fff;
+        }
+
+        .game-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+
+        h1 {
+            color: #039BE5;
+            font-size: 6.0em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .game-instructions {
+            font-size: 1.2em;
+            color: #FFEE58;
+            margin-bottom: 20px;
+            line-height: 1.0;
+            text-align: left;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .box {
+            background: #a52a2a;
+            border: 2px solid #ffd700;
+            border-radius: 8px;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #fff;
+        }
+
+        .box:hover {
+            transform: scale(1.05);
+            background: #8b0000;
+        }
+
+        .box.revealed {
+            cursor: not-allowed;
+        }
+
+        .safe {
+            background: #228b22;
+            color: #fff;
+        }
+
+        .question {
+            background: #1e90ff;
+            color: #fff;
+        }
+
+        .winner {
+            background: #ffd700;
+            color: #800000;
+            font-size: 1.3em;
+            font-weight: 700;
+        }
+
+        .eliminated {
+            background: #8b0000;
+            color: #fff;
+        }
+
+        #status {
+            font-size: 1.4em;
+            color: #ffd700;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            color: #333;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #ffd700;
+            color: #800000;
+            padding: 12px 35px;
+            border: none;
+            border-radius: 25px;
+            font-family: inherit;
+            font-size: 1.1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #c0a000;
+            transform: scale(1.05);
+        }
+
+        .game-record {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #ffd700;
+        }
+
+        .developers {
+            margin-top: 30px;
+            font-size: 1em;
+            color: #ffd700;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>PILI-PILIA ADI</h1>
+        <div class="game-instructions">
+          <p><strong>Kun waray ka pilia, PILI-PILIA ADI</strong></p>
+            <p>Welcome to the Fortune Game! Here's how to play:</p>
+            <p>1. Click on any box to reveal its type.</p>
+            <p>2. If it's a <strong>Safe Box</strong>, you're one step closer to winning!</p>
+            <p>3. If it's a <strong>Question Box</strong>, answer the question correctly to convert it into a Safe Box.</p>
+            <p>4. Answer incorrectly, and the box will be eliminated, ending the game.</p>
+            <p>5. Win by finding all 5 Safe Boxes!</p>
+          <p>NOTE: YOU CAN HAVE A MAXIMUM ATTEMPT OF 5, IF YOU WEREN'T ABLE TO MAKE IT WITH FIVE ATTEMPTS—YOU LOSE.</p>
+          <P> If you win, approach the reporters and show them your game to claim your price.</P>
+          <p><strong>THANK YOU SO MUCH FOR YOUR PARTICIPATION, ENJOY!</strong></p>
+        </div>
+        <div id="status">Click a box to begin!</div>
+        <div class="grid" id="grid"></div>
+        <button onclick="resetGame()">Play Again</button>
+        <div class="game-record">
+            <p>Games Played: <span id="gamesPlayed">0</span></p>
+            <p>Games Won: <span id="gamesWon">0</span></p>
+        </div>
+        <div class="developers">
+          <p&copy><strong>BY: Jake Baldoza, Angeline Loyola, Regine Mercurio, and Khiamae Batinga. All rights reserved.</strong></p&copy>
+        </div>
+    </div>
+
+    <!-- Question Modal -->
+    <div class="modal" id="questionModal">
+        <div class="modal-content">
+            <h2 id="questionText"></h2>
+            <select id="answerSelect">
+                <option value="">Please select your answer</option>
+            </select>
+            <button onclick="submitAnswer()">Submit</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            // Table Tennis Questions (10)
+            {
+                question: "What is the standard size of a table tennis table?",
+                options: ["2.74m x 1.525m", "3m x 1.5m", "2.5m x 1.4m", "2.8m x 1.6m"],
+                answer: "2.74m x 1.525m"
+            },
+            {
+                question: "What material is used for table tennis balls?",
+                options: ["Plastic", "Rubber", "Cork", "Wood"],
+                answer: "Plastic"
+            },
+            {
+                question: "How many points are needed to win a table tennis game?",
+                options: ["11", "15", "21", "25"],
+                answer: "11"
+            },
+            {
+                question: "What is the net height in table tennis?",
+                options: ["15.25cm", "20cm", "25cm", "30cm"],
+                answer: "15.25cm"
+            },
+            {
+                question: "Which country has won the most World Table Tennis Championships?",
+                options: ["China", "Sweden", "Japan", "South Korea"],
+                answer: "China"
+            },
+            {
+                question: "What is the maximum number of serves a player can have in a row?",
+                options: ["2", "5", "10", "Unlimited"],
+                answer: "2"
+            },
+            {
+                question: "What is the diameter of a table tennis ball?",
+                options: ["40mm", "38mm", "42mm", "44mm"],
+                answer: "40mm"
+            },
+            {
+                question: "What is the color of the table tennis table?",
+                options: ["Blue", "Green", "Dark Red", "Any dark color"],
+                answer: "Any dark color"
+            },
+            {
+                question: "What is the minimum height for the ceiling in a table tennis venue?",
+                options: ["2.5m", "3m", "4m", "5m"],
+                answer: "5m"
+            },
+            {
+                question: "What is the weight of a table tennis ball?",
+                options: ["2.7g", "3.5g", "4.2g", "5.1g"],
+                answer: "2.7g"
+            },
+
+            // General Knowledge Questions (9)
+            {
+                question: "What is the capital of France?",
+                options: ["Paris", "London", "Berlin", "Madrid"],
+                answer: "Paris"
+            },
+            {
+                question: "Who wrote 'Romeo and Juliet'?",
+                options: ["William Shakespeare", "Charles Dickens", "Mark Twain", "Jane Austen"],
+                answer: "William Shakespeare"
+            },
+            {
+                question: "What is the largest planet in our solar system?",
+                options: ["Earth", "Jupiter", "Saturn", "Neptune"],
+                answer: "Jupiter"
+            },
+            {
+                question: "What is the chemical symbol for water?",
+                options: ["H2O", "CO2", "NaCl", "O2"],
+                answer: "H2O"
+            },
+            {
+                question: "Who painted the Mona Lisa?",
+                options: ["Vincent Van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Claude Monet"],
+                answer: "Leonardo da Vinci"
+            },
+            {
+                question: "What is the smallest prime number?",
+                options: ["1", "2", "3", "5"],
+                answer: "2"
+            },
+            {
+                question: "What is the longest river in the world?",
+                options: ["Nile", "Amazon", "Yangtze", "Mississippi"],
+                answer: "Amazon"
+            },
+            {
+                question: "What is the currency of Japan?",
+                options: ["Yuan", "Won", "Yen", "Ringgit"],
+                answer: "Yen"
+            },
+            {
+                question: "Who developed the theory of relativity?",
+                options: ["Isaac Newton", "Albert Einstein", "Stephen Hawking", "Galileo Galilei"],
+                answer: "Albert Einstein"
+            }
+        ];
+
+        let currentQuestionIndex;
+        let currentBoxIndex;
+        let gameOver = false;
+        let revealedBoxes = new Set();
+        let gamesPlayed = 0;
+        let gamesWon = 0;
+
+        function createBoxes() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            
+            // Create boxes with different types
+            const boxTypes = Array(30).fill('question');
+            for(let i = 0; i < 5; i++) {
+                let randomIndex;
+                do {
+                    randomIndex = Math.floor(Math.random() * 30);
+                } while(boxTypes[randomIndex] !== 'question');
+                boxTypes[randomIndex] = 'safe';
+            }
+
+            boxTypes.forEach((type, index) => {
+                const box = document.createElement('div');
+                box.className = 'box';
+                box.dataset.index = index;
+                box.dataset.type = type;
+                box.addEventListener('click', handleBoxClick);
+                grid.appendChild(box);
+            });
+        }
+
+        function handleBoxClick(event) {
+            if(gameOver) return;
+            
+            const box = event.target;
+            const index = parseInt(box.dataset.index);
+            const type = box.dataset.type;
+            
+            if(revealedBoxes.has(index)) return;
+
+            revealedBoxes.add(index);
+
+            if(type === 'safe') {
+                box.classList.add('safe');
+                box.textContent = '✅ Safe!';
+                updateStatus('You found a safe box!');
+                checkWin();
+            } else {
+                currentBoxIndex = index;
+                showQuestion();
+            }
+        }
+
+        function showQuestion() {
+            currentQuestionIndex = Math.floor(Math.random() * questions.length);
+            const question = questions[currentQuestionIndex];
+            
+            document.getElementById('questionText').textContent = question.question;
+            const select = document.getElementById('answerSelect');
+            select.innerHTML = '<option value="">Please select your answer</option>';
+            question.options.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                select.appendChild(optionElement);
+            });
+            
+            document.getElementById('questionModal').style.display = 'flex';
+        }
+
+        function submitAnswer() {
+            const selectedAnswer = document.getElementById('answerSelect').value;
+            const correctAnswer = questions[currentQuestionIndex].answer;
+            const box = document.querySelector(`.box[data-index="${currentBoxIndex}"]`);
+            
+            if(selectedAnswer === correctAnswer) {
+                box.classList.add('safe');
+                box.textContent = '✅ YEY!';
+                updateStatus('Correct answer! You earned a safe box!');
+                checkWin();
+            } else {
+                box.classList.add('eliminated');
+                box.textContent = '❌ ENGK!';
+                gameOver = true;
+                updateStatus('Incorrect answer! Game over kana beh!');
+            }
+            
+            document.getElementById('questionModal').style.display = 'none';
+        }
+
+        function checkWin() {
+            const safeBoxes = document.querySelectorAll('.safe').length;
+            if(safeBoxes === 5) {
+                gameOver = true;
+                gamesWon++;
+                updateStatus('🎉 Congratulations! You have won in this useless game!');
+            }
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        function resetGame() {
+            gamesPlayed++;
+            gameOver = false;
+            revealedBoxes.clear();
+            createBoxes();
+            updateStatus('Click a box to begin!');
+            document.getElementById('gamesPlayed').textContent = gamesPlayed;
+            document.getElementById('gamesWon').textContent = gamesWon;
+        }
+
+        // Initialize game
+        createBoxes();
+    </script>
+</body>
+</html>
